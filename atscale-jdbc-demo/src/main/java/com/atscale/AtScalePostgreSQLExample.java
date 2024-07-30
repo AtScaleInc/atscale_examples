@@ -1,14 +1,14 @@
 package com.atscale;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.*;
 
 public class AtScalePostgreSQLExample {
     public static void main(String[] args) {
         // Database connection parameters
-        String url = "jdbc:postgresql://localhost:15432/sml-models_main";
+        String atscale_model = "Internet Sales";
+        String atscale_catalog = "sml-internet-sales_main";
+
+        String url = "jdbc:postgresql://localhost:15432/" + atscale_catalog;
         String user = "admin";
         String password = "admin";
 
@@ -21,15 +21,42 @@ public class AtScalePostgreSQLExample {
             connection = DriverManager.getConnection(url, user, password);
             System.out.println("Connected to the AtScale server successfully.");
 
+            // List a column's metdata (in the JDBC REMARKS field)
+            //
+
+            // Get database metadata
+            DatabaseMetaData metaData = connection.getMetaData();
+
+            // Retrieve columns' metadata for the specified table
+            ResultSet columns = metaData.getColumns(atscale_catalog, atscale_catalog, atscale_model, null);
+
+            System.out.println("\nColumn Metadata (JSON):\n");
+
+            // Iterate over the columns and print remarks
+            while (columns.next()) {
+                String columnName = columns.getString("COLUMN_NAME");
+                String columnRemark = columns.getString("REMARKS");
+                System.out.printf("Column: %-70s Remark: %s%n", columnName, columnRemark);
+            }
+
+            // Close the ResultSet
+            columns.close();
+
+            // Run a Query and Get Results
+            //
+
             // Create a statement object
             statement = connection.createStatement();
 
             // Execute a query
             String query = "SELECT \"Internet Sales\".\"CountryCity\" AS \"Country\",\n" + //
                                 "  SUM(\"Internet Sales\".\"orderquantity1\") AS \"Order Quantity\"\n" + //
-                                "FROM \"sml-models_main\".\"Internet Sales\" \"Internet Sales\"\n" + //
+                                "FROM \"" +  atscale_catalog + "\".\"" + atscale_model + "\"\n" + //
                                 "GROUP BY 1";
             resultSet = statement.executeQuery(query);
+
+            System.out.println("\nQuery: \n\n" + query);
+            System.out.println("\nResults:\n");
 
             // Process the result set
             while (resultSet.next()) {
