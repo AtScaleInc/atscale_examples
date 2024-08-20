@@ -6,7 +6,7 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import org.json.JSONObject;
 
-public class AtScaleMDXExample {
+public class AtScaleDMVExample {
 
     public static void main(String[] args) {
         try {
@@ -21,27 +21,27 @@ public class AtScaleMDXExample {
 
             // Query Parameters
             String catalog = "<DEPLOYED CATALOG>";
-            String useAggregates = "true";
-            String generateAggregates = "true";
-            String useQueryCache = "true";
-            String useAggregateCache = "true";
 
-            // Specify your MDX query
-            String mdxQuery = "SELECT { Measures.[OrderQuantity1] } ON COLUMNS,\n" +
-                    "  { DrilldownLevel([Color Dimension].[Color].[All]) } ON ROWS\n" +
-                    "FROM [Internet Sales]";
+            // Specify your DMV query
+            String dmvQuery = "SELECT [CATALOG_NAME], [SCHEMA_NAME], [CUBE_NAME], [MEASURE_NAME], " +
+                    "[MEASURE_UNIQUE_NAME], [MEASURE_GUID], [MEASURE_CAPTION], [MEASURE_AGGREGATOR], " +
+                    "[DATA_TYPE], [NUMERIC_PRECISION], [NUMERIC_SCALE], [MEASURE_UNITS], [DESCRIPTION], " +
+                    "[EXPRESSION], [MEASURE_IS_VISIBLE], [MEASURE_IS_VISIBLE], [MEASURE_NAME_SQL_COLUMN_NAME], " +
+                    "[MEASURE_UNQUALIFIED_CAPTION], [MEASUREGROUP_NAME], [MEASURE_DISPLAY_FOLDER], " +
+                    "[DEFAULT_FORMAT_STRING] " +
+                    "FROM $system.MDSCHEMA_MEASURES WHERE [CUBE_NAME] = 'Internet Sales'";
 
             // Bearer token for authorization
             String bearerToken = getBearerToken(authServer, clientSecret, user, password);
 
             // Build the SOAP request payload
-            String soapRequest = buildSoapRequest(mdxQuery, catalog, useAggregates, generateAggregates, useQueryCache, useAggregateCache);
+            String soapRequest = buildSoapRequest(dmvQuery, catalog);
 
             // Send the SOAP request
             String response = sendSoapRequest(xmlaUrl, soapRequest, bearerToken);
 
             // Print the SOAP response
-            System.out.println("Response from OLAP server:");
+            System.out.println("Response from AtScale server:");
             System.out.println(response);
 
         } catch (Exception e) {
@@ -75,7 +75,7 @@ public class AtScaleMDXExample {
         }
     }
 
-    private static String buildSoapRequest(String mdxQuery, String catalog, String useAggregates, String generateAggregates, String useQueryCache, String useAggregateCache) {
+    private static String buildSoapRequest(String dmvQuery, String catalog) {
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                 "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"\n" +
                 "                  xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"\n" +
@@ -84,15 +84,11 @@ public class AtScaleMDXExample {
                 "    <soapenv:Body>\n" +
                 "        <Execute xmlns=\"urn:schemas-microsoft-com:xml-analysis\">\n" +
                 "            <Command>\n" +
-                "                <Statement>" + mdxQuery + "</Statement>\n" +
+                "                <Statement>" + dmvQuery + "</Statement>\n" +
                 "            </Command>\n" +
                 "            <Properties>\n" +
                 "                <PropertyList>\n" +
                 "                    <Catalog>" + catalog + "</Catalog>\n" +
-                "                    <UseAggregates>" + useAggregates + "</UseAggregates>\n" +
-                "                    <GenerateAggregates>" + generateAggregates + "</GenerateAggregates>\n" +
-                "                    <UseQueryCache>" + useQueryCache + "</UseQueryCache>\n" +
-                "                    <UseAggregateCache>" + useAggregateCache + "</UseAggregateCache>\n" +
                 "                </PropertyList>\n" +
                 "            </Properties>\n" +
                 "        </Execute>\n" +
