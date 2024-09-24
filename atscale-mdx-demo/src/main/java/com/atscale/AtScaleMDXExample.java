@@ -15,7 +15,12 @@ public class AtScaleMDXExample {
             String xmlaUrl = "http://localhost/engine/xmla/<XMLA TOKEN>";
 
             // Auth Info
-            String clientSecret = "<CLIENT SECRET>";
+            // Note: There are 2 methods for authenticating: You can either set the clientSecret variable
+            //       and get the bearer token via a REST call or just use the API token that you can copy from the
+            //       Design Center user profile screen.
+            //
+            String clientSecret = ""; // LEAVE THIS BLANK IF YOU WANT TO USE API TOKEN FROM DESIGN CENTER
+            String bearerToken = ""; // LEAVE THIS BLANK IF YOU WANT TO AUTH WITH clientSecret
             String user = "admin";
             String password = "admin";
 
@@ -32,7 +37,9 @@ public class AtScaleMDXExample {
                     "FROM [Internet Sales]";
 
             // Bearer token for authorization
-            String bearerToken = getBearerToken(authServer, clientSecret, user, password);
+            if (bearerToken.isBlank()) {
+                bearerToken = getBearerToken(authServer, clientSecret, user, password);
+            }
 
             // Build the SOAP request payload
             String soapRequest = buildSoapRequest(mdxQuery, catalog, useAggregates, generateAggregates, useQueryCache, useAggregateCache);
